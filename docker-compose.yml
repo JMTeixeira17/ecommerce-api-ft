@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # 1. El servicio de Base de Datos (PostgreSQL)
+  # Funciona igual para Supabase local o un postgres estándar
+  db:
+    image: postgres:15-alpine
+    container_name: farmatodo-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password # Cambia esto por tu password
+      POSTGRES_DB: ecommerce_db
+    ports:
+      - "5432:5432" # Expone la DB a tu máquina local (para DBeaver/PgAdmin)
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ecommerce_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. El servicio de nuestra Aplicación Spring Boot
+  app:
+    container_name: farmatodo-app
+    # Construye la imagen a partir del Dockerfile en el mismo directorio
+    build: .
+    ports:
+      - "8080:8080" # Expone la API a tu máquina local
+    # Se asegura de que la DB esté lista antes de arrancar la app
+    depends_on:
+      db:
+        condition: service_healthy
+    # Seteamos las variables de entorno para la app
+    # Estas sobreescriben el application-dev.yml
+    environment:
+      # Activamos el perfil 'dev' para que Flyway se ejecute
+      SPRING_PROFILES_ACTIVE: dev
+
+      # URL de la DB. 'db' es el nombre del servicio de arriba.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/ecommerce_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password # Debe coincidir con el de la DB
+
+      # Claves de seguridad (las mismas de application-dev.yml)
+      SECURITY_API_KEY: "dev_api_key_12345"
+      SECURITY_JWT_SECRET_KEY: "VGhpcyBpcyBhIHNlY3JldCBrZXkgZm9yIGRldmVsb3BtZW50LiBJbiBwcm9kIHVzZSBhIGxvbmcgcGFzc3BocmFzZQ=="
+
+volumes:
+  # Volumen para persistir los datos de la DB
+  postgres-data:

@@ -1,0 +1,841 @@
+{
+	"info": {
+		"_postman_id": "45b599ea-afef-45f4-a9e0-06e616a58d33",
+		"name": "Farmatodo E-commerce Challenge (GCP)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27706958",
+		"_collection_link": "https://cloudy-resonance-816195.postman.co/workspace/Team-Workspace~6afb2350-150d-491a-876c-713a0d0c2322/collection/27706958-45b599ea-afef-45f4-a9e0-06e616a58d33?action=share&source=collection_link&creator=27706958"
+	},
+	"item": [
+		{
+			"name": "Autenticación",
+			"item": [
+				{
+					"name": "2. Registrar Cliente",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"pm.test(\"Registro Exitoso y devuelve token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"    pm.expect(jsonData.data.token).to.not.be.empty;",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"jose.test@example.com\",\r\n    \"password\": \"password123\",\r\n    \"phone\": \"+525512345678\",\r\n    \"firstName\": \"Jose\",\r\n    \"lastName\": \"Teixeira\",\r\n    \"addressLine1\": \"Av. Siempre Viva 123\",\r\n    \"city\": \"Ciudad de Mexico\",\r\n    \"state\": \"CDMX\",\r\n    \"postalCode\": \"06500\",\r\n    \"country\": \"MX\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Login Cliente",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// Guarda el token JWT en una variable de la colección",
+									"var jsonData = pm.response.json();",
+									"if (jsonData && jsonData.data && jsonData.data.token) {",
+									"    pm.collectionVariables.set(\"jwt_token\", jsonData.data.token);",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"    pm.expect(jsonData.data.token).to.not.be.empty;",
+									"} else {",
+									"    pm.expect.fail(\"Login fallido o token ausente.\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"jose.test@example.com\",\r\n    \"password\": \"password123\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tarjetas (Tokenización)",
+			"item": [
+				{
+					"name": "4. Registrar Tarjeta (JWT + API Key)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"// Guarda el UUID de la tarjeta para usarlo en la orden",
+									"var jsonData = pm.response.json();",
+									"if (jsonData && jsonData.data && jsonData.data.cardId) {",
+									"    pm.collectionVariables.set(\"card_uuid\", jsonData.data.cardId);",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"    pm.expect(jsonData.data.cardBrand).to.eql(\"VISA\");",
+									"} else {",
+									"    pm.expect.fail(\"Fallo al registrar tarjeta o token.\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"description": "Token JWT obtenido del login",
+								"type": "text"
+							},
+							{
+								"key": "X-API-KEY",
+								"value": "{{api_key}}",
+								"description": "API Key del servicio (para el componente de tokenización)",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"cardNumber\": \"4242424242424242\",\r\n    \"cvv\": \"123\",\r\n    \"expirationMonth\": \"02\",\r\n    \"expirationYear\": \"2029\",\r\n    \"cardHolderName\": \"Jose Teixeira\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cards",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cards"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5. Tokenizar (Interno - API Key Only)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Tokenización interna exitosa\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"    pm.expect(jsonData.data.token).to.not.be.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"cardNumber\": \"5454545454545454\",\r\n    \"cvv\": \"456\",\r\n    \"expirationMonth\": \"12\",\r\n    \"expirationYear\": \"2030\",\r\n    \"cardHolderName\": \"Test Interno\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tokenize",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tokenize"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener tarjetas (usuario)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"productId\": 2,\r\n    \"quantity\": 1\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cards",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cards"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Productos",
+			"item": [
+				{
+					"name": "6. Buscar Productos (Opcionalmente Autenticado)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Búsqueda exitosa y devuelve datos\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"    pm.expect(jsonData.data).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products/search?q=pa",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "pa"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Carrito de Compras",
+			"item": [
+				{
+					"name": "7. [Anónimo] Añadir Producto al Carrito",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Devuelve Session ID en header\", function () {",
+									"    pm.expect(pm.response.headers.get('X-Session-ID')).to.not.be.empty;",
+									"});",
+									"// Script para capturar el X-Session-ID devuelto y guardarlo",
+									"var sessionId = pm.response.headers.get(\"X-Session-ID\");",
+									"if (sessionId) {",
+									"    pm.collectionVariables.set(\"session_id\", sessionId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-ID",
+								"value": "{{session_id}}",
+								"description": "Se envía vacío la primera vez. Se auto-actualiza con el script de 'Tests'.",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"productId\": 1,\r\n    \"quantity\": 2\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cart/items",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cart",
+								"items"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "8. [Autenticado] Añadir Producto al Carrito",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Carro actualizado y activo\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.status).to.eql(\"ACTIVE\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"productId\": 2,\r\n    \"quantity\": 1\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cart/items",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cart",
+								"items"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Órdenes y Pagos",
+			"item": [
+				{
+					"name": "9. [Autenticado] Crear Orden desde Carrito",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Orden creada en estado PENDING\", function () {",
+									"    pm.expect(jsonData.data.status).to.eql(\"PENDING\");",
+									"});",
+									"// Guarda el order_uuid para el pago",
+									"if (jsonData && jsonData.data && jsonData.data.orderUuid) {",
+									"    pm.collectionVariables.set(\"order_uuid\", jsonData.data.orderUuid);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"tokenizedCardUuid\": \"{{card_uuid}}\",\r\n    \"shippingAddressLine1\": \"Av. San Felipe 123\",\r\n    \"shippingAddressLine2\": \"Torre Coinasa, Piso 5\",\r\n    \"shippingCity\": \"Caracas\",\r\n    \"shippingState\": \"Distrito Capital\",\r\n    \"shippingPostalCode\": \"1060\",\r\n    \"shippingCountry\": \"VE\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/orders",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "10. [Autenticado] Procesar Pago de Orden",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Status is 200 or 422\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 422]);",
+									"});",
+									"if (pm.response.code === 200) {",
+									"    pm.test(\"Pago Aprobado\", function () {",
+									"        pm.expect(jsonData.data.status).to.eql(\"APPROVED\");",
+									"    });",
+									"} else if (pm.response.code === 422) {",
+									"    pm.test(\"Pago Rechazado\", function () {",
+									"        pm.expect(jsonData.status).to.eql(\"error\");",
+									"        pm.expect(jsonData.error).to.exist;",
+									"        pm.expect(jsonData.error).to.satisfy(function (error) {",
+									"            return error.includes(\"DECLINED\") || error.includes(\"FAILED\");",
+									"        });",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/orders/{{order_uuid}}/pay",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"orders",
+								"{{order_uuid}}",
+								"pay"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Administración (Config)",
+			"item": [
+				{
+					"name": "11. [ADMIN] Actualizar Probabilidad de Rechazo (Tokenización)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Configuración guardada\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"success\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"configKey\": \"tokenization.rejection.probability\",\r\n    \"configValue\": \"0.95\" \r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/config",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "12. [ADMIN] Actualizar Stock Mínimo Visible",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"configKey\": \"product.min.stock.visibility\",\r\n    \"configValue\": \"5\" \r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/config",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "13. [ADMIN] Actualizar Probabilidad de Rechazo de Pago",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"configKey\": \"payment.rejection.probability\",\r\n    \"configValue\": \"0.95\" \r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/config",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "14. [ADMIN] Actualizar cantidad de intentos de pago",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"configKey\": \"payment.max.retry.attempts\",\r\n    \"configValue\": \"4\" \r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/config",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"config"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "1. Ping (Public)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Body is 'pong' and success\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data).to.eql(\"pong\");",
+							"    pm.expect(jsonData.status).to.eql(\"success\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/ping",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"ping"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://ecommerce-api-468133790239.us-central1.run.app/api/v1"
+		},
+		{
+			"key": "api_key",
+			"value": "dev_api_key_12345"
+		},
+		{
+			"key": "jwt_token",
+			"value": ""
+		},
+		{
+			"key": "session_id",
+			"value": "",
+			"description": {
+				"content": "Se auto-rellena por el script de la petición '7. [Anónimo] Añadir Producto'",
+				"type": "text/plain"
+			}
+		},
+		{
+			"key": "card_uuid",
+			"value": "",
+			"description": {
+				"content": "Se auto-rellena por el script de la petición '4. Registrar Tarjeta'",
+				"type": "text/plain"
+			}
+		},
+		{
+			"key": "order_uuid",
+			"value": "",
+			"description": {
+				"content": "Se auto-rellena por el script de la petición '9. Crear Orden'",
+				"type": "text/plain"
+			}
+		}
+	]
+}

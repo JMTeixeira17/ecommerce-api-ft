@@ -1,0 +1,31 @@
+# src/main/resources/application.yml
+spring:
+  application:
+    name: ecommerce-api
+
+  # Perfil activo por defecto (para desarrollo local)
+  profiles:
+    active: dev
+
+# Configuración del servidor (puerto y contexto)
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+
+# Configuración de OpenAPI (Swagger)
+springdoc:
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+# Configuración de seguridad (placeholders)
+# Los valores reales se definen en los perfiles
+security:
+  api-key: ${API_SECRET_KEY}
+  jwt:
+    secret-key: ${JWT_SECRET_KEY}
+    expiration-ms: 3600000 # 1 hora
