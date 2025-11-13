@@ -34,8 +34,7 @@ Este proyecto requiere variables de entorno para funcionar, las cuales se leen d
 
 1.  **Clonar el Repositorio:**
 
-        git clone https://github.com/JMTeixeira17/ecommerce-api-farmatodo.git
-        cd ecommerce-api
+        git clone https://github.com/JMTeixeira17/ecommerce-api-ft
 
 2.  **Rellenar `application-dev.yml`:**
     *   Abre el proyecto en IntelliJ.
