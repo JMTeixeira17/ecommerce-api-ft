@@ -243,10 +243,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"productId\": 2,\r\n    \"quantity\": 1\r\n}"
-						},
 						"url": {
 							"raw": "{{base_url}}/cards",
 							"host": [
